@@ -1,0 +1,329 @@
+{
+  "info": {
+    "name": "MyResume API",
+    "_postman_id": "myresume-api-local",
+    "description": "Local Spring Boot API for resume management with JWT auth.\n\nStart the API:\n  cd myresumeapi\n  ./mvnw spring-boot:run\n\nDefault base URL: http://localhost:8080\n\nSuggested flow:\n  1. Health Check\n  2. Login (or Register) — saves accessToken automatically\n  3. Create Resume — saves resumeId\n  4. Update Resume — PUT with resumeId + userId\n  5. Get Resume By Id / Get Resumes By User",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "email",
+      "value": "cesar.ramirez@email.com"
+    },
+    {
+      "key": "password",
+      "value": "ChangeMe123!"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "1"
+    },
+    {
+      "key": "resumeId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Returns OK when the API is running. No authentication required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Register status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "",
+                  "    pm.test('Access token received', function () {",
+                  "        pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    console.log('accessToken saved:', data.accessToken.substring(0, 20) + '...');",
+                  "",
+                  "    if (data.userId) {",
+                  "        pm.collectionVariables.set('userId', String(data.userId));",
+                  "        console.log('userId saved:', data.userId);",
+                  "    }",
+                  "    if (data.email) {",
+                  "        pm.collectionVariables.set('email', data.email);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"firstName\": \"Cesar\",\n  \"lastName\": \"Ramirez\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Creates a new user and returns a JWT. On success, saves accessToken and userId to collection variables for all Resume requests."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "",
+                  "    pm.test('Access token received', function () {",
+                  "        pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    console.log('accessToken saved:', data.accessToken.substring(0, 20) + '...');",
+                  "",
+                  "    if (data.userId) {",
+                  "        pm.collectionVariables.set('userId', String(data.userId));",
+                  "        console.log('userId saved:', data.userId);",
+                  "    }",
+                  "    if (data.email) {",
+                  "        pm.collectionVariables.set('email', data.email);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Authenticates a user and returns a JWT. On success, saves accessToken to collection variables — all Resume requests use it automatically."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users",
+            "description": "Returns all users. Requires a valid JWT (run Login or Register first)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resumes",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const token = pm.collectionVariables.get('accessToken');",
+              "if (!token) {",
+              "    console.warn('No accessToken set. Run Auth > Login first.');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Get Resumes By User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/resumes/user/{{userId}}",
+            "description": "Returns resume summaries for a user. Uses Bearer token from Login automatically."
+          }
+        },
+        {
+          "name": "Get Resume By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/resumes/{{resumeId}}",
+            "description": "Returns the full resume. Uses Bearer token from Login automatically."
+          }
+        },
+        {
+          "name": "Create Resume",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    if (data.resumeId) {",
+                  "        pm.collectionVariables.set('resumeId', String(data.resumeId));",
+                  "        console.log('resumeId saved:', data.resumeId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}},\n  \"resumeName\": \"Senior Software Engineer Resume\",\n  \"templateName\": \"MODERN\",\n  \"personalInfo\": {\n    \"name\": \"Cesar David Ramirez Reyes\",\n    \"title\": \"Senior Software Engineer\",\n    \"email\": \"cesar.ramirez@email.com\",\n    \"phone\": \"+52 871 324 9988\",\n    \"address\": \"Torreon, Coahuila, Mexico\",\n    \"linkedin\": \"linkedin.com/in/cesardavidramirez\",\n    \"github\": \"github.com/cesardavidramirez\",\n    \"photo\": \"resume.png\",\n    \"summary\": \"Senior Software Engineer with 10+ years of experience designing and delivering enterprise-scale applications across manufacturing, ERP, and consulting environments. Specialized in Java, Spring Boot, React, cloud architecture, and distributed systems.\"\n  },\n  \"coreCompetencies\": [\n    \"Microservices Architecture\",\n    \"System Design\",\n    \"Cloud Architecture\",\n    \"REST API Design\",\n    \"CI/CD & DevOps\",\n    \"Technical Leadership\",\n    \"Full-Stack Development\",\n    \"Agile Delivery\"\n  ],\n  \"technicalSkills\": {\n    \"Languages\": [\"Java\", \"JavaScript\", \"TypeScript\", \"Python\"],\n    \"Frontend\": [\"React\", \"HTML\", \"CSS\"],\n    \"Backend\": [\"Spring Boot\", \"Node.js\", \"REST APIs\"],\n    \"Cloud\": [\"AWS\"],\n    \"DevOps\": [\"Docker\", \"Jenkins\", \"GitHub Actions\", \"CI/CD\"],\n    \"Databases\": [\"PostgreSQL\", \"MySQL\", \"MongoDB\"],\n    \"Testing\": [\"JUnit\", \"Cypress\"]\n  },\n  \"professionalHistory\": [\n    {\n      \"company\": \"Capgemini\",\n      \"role\": \"Senior Full-Stack Developer\",\n      \"period\": \"Nov 2024 — Present\",\n      \"location\": \"Mexico City, Mexico\",\n      \"achievements\": [\n        \"Design and develop end-to-end policy management modules using Java, Spring Boot, ReactJS, and PostgreSQL.\",\n        \"Build and maintain RESTful APIs and backend services supporting complex insurance business workflows.\",\n        \"Develop responsive frontend applications with ReactJS, delivering intuitive user experiences.\"\n      ]\n    },\n    {\n      \"company\": \"Tyson Foods TMTC\",\n      \"role\": \"Senior Full-Stack Developer\",\n      \"period\": \"Oct 2016 — Oct 2022\",\n      \"location\": \"Monterrey, Mexico\",\n      \"achievements\": [\n        \"Designed and developed more than 10 marketing websites using ReactJS.\",\n        \"Developed and maintained RESTful APIs using Java and Spring Boot.\",\n        \"Led architecture decisions across frontend, backend, database, and infrastructure layers.\"\n      ]\n    },\n    {\n      \"company\": \"Epicor\",\n      \"role\": \"Java Developer\",\n      \"period\": \"Oct 2014 — Oct 2016\",\n      \"location\": \"Monterrey, Mexico\",\n      \"achievements\": [\n        \"Developed and maintained enterprise desktop applications using Java Swing and JavaFX.\",\n        \"Fixed software defects and implemented new modules for ERP-related business processes.\"\n      ]\n    }\n  ],\n  \"featuredProjects\": [\n    {\n      \"name\": \"Resume Builder\",\n      \"description\": \"Built a custom application that generates professional resumes from structured JSON data and exports modern PDF layouts.\",\n      \"technologies\": [\"Java\", \"Spring Boot\", \"React\", \"PDF Generation\"]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/resumes",
+            "description": "Creates a new resume. Requires userId (do not send resumeId). Saves resumeId on success."
+          }
+        },
+        {
+          "name": "Update Resume",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Update status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    if (data.resumeId) {",
+                  "        pm.collectionVariables.set('resumeId', String(data.resumeId));",
+                  "        console.log('resumeId confirmed:', data.resumeId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resumeId\": {{resumeId}},\n  \"userId\": {{userId}},\n  \"resumeName\": \"Senior Software Engineer Resume (Updated)\",\n  \"templateName\": \"MODERN\",\n  \"personalInfo\": {\n    \"name\": \"Cesar David Ramirez Reyes\",\n    \"title\": \"Senior Software Engineer\",\n    \"email\": \"cesar.ramirez@email.com\",\n    \"phone\": \"+52 871 324 9988\",\n    \"address\": \"Torreon, Coahuila, Mexico\",\n    \"linkedin\": \"linkedin.com/in/cesardavidramirez\",\n    \"github\": \"github.com/cesardavidramirez\",\n    \"photo\": \"resume.png\",\n    \"summary\": \"Senior Software Engineer with 10+ years of experience designing and delivering enterprise-scale applications. Updated via PUT.\"\n  },\n  \"coreCompetencies\": [\n    \"Microservices Architecture\",\n    \"System Design\",\n    \"Cloud Architecture\",\n    \"REST API Design\",\n    \"CI/CD & DevOps\",\n    \"Technical Leadership\",\n    \"Full-Stack Development\",\n    \"Agile Delivery\"\n  ],\n  \"technicalSkills\": {\n    \"Languages\": [\"Java\", \"JavaScript\", \"TypeScript\", \"Python\"],\n    \"Frontend\": [\"React\", \"HTML\", \"CSS\"],\n    \"Backend\": [\"Spring Boot\", \"Node.js\", \"REST APIs\"],\n    \"Cloud\": [\"AWS\"],\n    \"DevOps\": [\"Docker\", \"Jenkins\", \"GitHub Actions\", \"CI/CD\"],\n    \"Databases\": [\"PostgreSQL\", \"MySQL\", \"MongoDB\"],\n    \"Testing\": [\"JUnit\", \"Cypress\"]\n  },\n  \"professionalHistory\": [\n    {\n      \"company\": \"Capgemini\",\n      \"role\": \"Senior Full-Stack Developer\",\n      \"period\": \"Nov 2024 — Present\",\n      \"location\": \"Mexico City, Mexico\",\n      \"achievements\": [\n        \"Design and develop end-to-end policy management modules using Java, Spring Boot, ReactJS, and PostgreSQL.\",\n        \"Build and maintain RESTful APIs and backend services supporting complex insurance business workflows.\",\n        \"Develop responsive frontend applications with ReactJS, delivering intuitive user experiences.\"\n      ]\n    },\n    {\n      \"company\": \"Tyson Foods TMTC\",\n      \"role\": \"Senior Full-Stack Developer\",\n      \"period\": \"Oct 2016 — Oct 2022\",\n      \"location\": \"Monterrey, Mexico\",\n      \"achievements\": [\n        \"Designed and developed more than 10 marketing websites using ReactJS.\",\n        \"Developed and maintained RESTful APIs using Java and Spring Boot.\",\n        \"Led architecture decisions across frontend, backend, database, and infrastructure layers.\"\n      ]\n    }\n  ],\n  \"featuredProjects\": [\n    {\n      \"name\": \"Resume Builder\",\n      \"description\": \"Built a custom application that generates professional resumes from structured JSON data and exports modern PDF layouts.\",\n      \"technologies\": [\"Java\", \"Spring Boot\", \"React\", \"PDF Generation\"]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/resumes",
+            "description": "Updates an existing resume. resumeId and userId are mandatory. Replaces all nested data. Run Create Resume first or set resumeId manually."
+          }
+        }
+      ]
+    }
+  ]
+}
