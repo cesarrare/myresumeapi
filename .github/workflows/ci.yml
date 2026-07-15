@@ -134,6 +134,7 @@ jobs:
             echo "Configure repository secrets: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN"
             exit 1
           fi
+          
 
           printf '%s' "$TOKEN" | docker login -u "$USERNAME" --password-stdin
 
