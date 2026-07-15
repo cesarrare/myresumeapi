@@ -1,8 +1,9 @@
 # CI/CD Pipeline for myresumeapi
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
-#   DOCKERHUB_USERNAME  - Docker Hub username
-#   DOCKERHUB_TOKEN     - Docker Hub access token (not your account password)
+#   DOCKERHUB_USERNAME  - Docker Hub username only (e.g. cesarrare), not email
+#   DOCKERHUB_TOKEN     - Docker Hub access token (Account Settings → Security)
+#                         Paste without quotes or trailing spaces/newlines
 #
 # Optional (OWASP Dependency-Check disabled for now):
 #   NVD_API_KEY         - NVD API key for OWASP Dependency-Check
@@ -121,10 +122,20 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          USERNAME="$(printf '%s' "$DOCKERHUB_USERNAME" | tr -d '[:space:]')"
+          TOKEN="$(printf '%s' "$DOCKERHUB_TOKEN" | tr -d '[:space:]')"
+
+          if [ -z "$USERNAME" ] || [ -z "$TOKEN" ]; then
+            echo "Docker Hub credentials are missing."
+            echo "Configure repository secrets: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN"
+            exit 1
+          fi
+
+          printf '%s' "$TOKEN" | docker login -u "$USERNAME" --password-stdin
 
       - name: Build Docker image
         uses: docker/build-push-action@v7
