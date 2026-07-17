@@ -1,7 +1,7 @@
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/myresumedb}
-    username: ${SPRING_DATASOURCE_USERNAME:myresume}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
 
   jpa:
@@ -17,3 +17,6 @@ app:
   jwt:
     secret: ${JWT_SECRET:myresume-dev-only-secret-key-min-32-chars!!}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}

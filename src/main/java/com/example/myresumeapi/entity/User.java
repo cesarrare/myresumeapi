@@ -29,6 +29,15 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "auth_provider", nullable = false)
+    private String authProvider;
+
+    @Column(name = "google_id")
+    private String googleId;
+
+    @Column(name = "picture_url")
+    private String pictureUrl;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

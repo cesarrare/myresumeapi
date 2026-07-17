@@ -1,5 +1,6 @@
 package com.example.myresumeapi.controller;
 
+import com.example.myresumeapi.dto.auth.GoogleAuthRequest;
 import com.example.myresumeapi.dto.auth.LoginRequest;
 import com.example.myresumeapi.dto.auth.LoginResponse;
 import com.example.myresumeapi.dto.auth.RegisterRequest;
@@ -25,5 +26,10 @@ public class AuthController {
     @PostMapping("/register")
     public LoginResponse register(@RequestBody RegisterRequest request) {
         return authService.register(request);
+    }
+
+    @PostMapping("/google")
+    public LoginResponse googleAuth(@RequestBody GoogleAuthRequest request) {
+        return authService.googleAuth(request);
     }
 }
