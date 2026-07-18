@@ -1,4 +1,8 @@
 spring:
+  config:
+    # Local-only secrets (git-ignored). In CI/prod use GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET.
+    import: "optional:classpath:application.local.yml"
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/myresumedb}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -18,5 +22,5 @@ app:
     secret: ${JWT_SECRET:myresume-dev-only-secret-key-min-32-chars!!}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   google:
-    client-id: ${GOOGLE_CLIENT_ID}
-    client-secret: ${GOOGLE_CLIENT_SECRET}
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}

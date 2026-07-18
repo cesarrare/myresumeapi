@@ -62,7 +62,12 @@ public class GoogleTokenService {
         } catch (ResponseStatusException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw unauthorized();
+            // Audience mismatch / expired token / bad signature usually land here.
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid Google idToken: " + ex.getMessage(),
+                    ex
+            );
         }
     }
 
