@@ -210,7 +210,7 @@ jobs:
 
       - name: Deploy application
         run: |
-          sed -i "s|IMAGE_NAME_TAG|${secrets.DOCKERHUB_USERNAME}/${env.IMAGE_NAME}:${github.sha}|g" k8s/deployment.yaml
+          sed -i "s|IMAGE_NAME_TAG|${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" k8s/deployment.yaml
           kubectl apply \
             -f k8s/ \
             --namespace=${KUBE_NAMESPACE}
