@@ -218,6 +218,6 @@ jobs:
       - name: Wait for deployment
         run: |
           kubectl rollout status \
-            deployment/mi-aplicacion \
+            deployment/myresumeapi \
             --namespace=${KUBE_NAMESPACE} \
             --timeout=300s
