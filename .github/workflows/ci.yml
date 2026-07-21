@@ -27,6 +27,7 @@ permissions:
 env:
   JAVA_VERSION: "21"
   IMAGE_NAME: myresumeapi
+  KUBE_NAMESPACE: myresume
 
 jobs:
   build:
@@ -163,3 +164,60 @@ jobs:
         run: |
           docker push "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest"
           docker push "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+
+
+      - name: Configure Kubernetes
+        run: |
+          mkdir -p $HOME/.kube
+
+          cat <<EOF > $HOME/.kube/config
+          apiVersion: v1
+          kind: Config
+          clusters:
+          - name: kubernetes
+            cluster:
+              server: ${KUBE_SERVER}
+              certificate-authority-data: ${KUBE_CA_CERT}
+
+          contexts:
+          - name: github-actions
+            context:
+              cluster: kubernetes
+              namespace: ${KUBE_NAMESPACE}
+              user: github-actions
+
+          current-context: github-actions
+
+          users:
+          - name: github-actions
+            user:
+              token: ${KUBE_TOKEN}
+          EOF
+
+          chmod 600 $HOME/.kube/config
+
+        env:
+          KUBE_SERVER: ${{ secrets.KUBE_SERVER }}
+          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+          KUBE_CA_CERT: ${{ secrets.KUBE_CA_CERT }}
+  
+      - name: Validate Kubernetes connection
+        run: |
+          kubectl cluster-info
+          kubectl auth can-i create deployments
+          kubectl auth can-i create secrets
+          kubectl auth can-i create ingresses
+
+      - name: Deploy application
+        run: |
+          sed -i "s|IMAGE_NAME_TAG|${secrets.DOCKERHUB_USERNAME}/${env.IMAGE_NAME}:${github.sha}|g" k8s/deployment.yaml
+          kubectl apply \
+            -f k8s/ \
+            --namespace=${KUBE_NAMESPACE}
+
+      - name: Wait for deployment
+        run: |
+          kubectl rollout status \
+            deployment/mi-aplicacion \
+            --namespace=${KUBE_NAMESPACE} \
+            --timeout=300s
