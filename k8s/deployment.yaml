@@ -42,6 +42,18 @@ spec:
               secretKeyRef:
                 name: sc-db
                 key: SPRING_DATASOURCE_PASSWORD
+                
+          - name: GOOGLE_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: sc-gapi
+                key: GOOGLE_CLIENT_SECRET
+                
+          - name: GOOGLE_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: sc-gapi
+                key: GOOGLE_CLIENT_ID
         ports:
         - containerPort: 8080
         
