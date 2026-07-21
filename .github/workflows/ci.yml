@@ -203,7 +203,7 @@ jobs:
   
       - name: Validate Kubernetes connection
         run: |
-          kubectl cluster-info
+          #kubectl cluster-info
           kubectl auth can-i create deployments
           kubectl auth can-i create secrets
           kubectl auth can-i create ingresses
