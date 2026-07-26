@@ -9,4 +9,6 @@ public interface ResumeRepository
         extends JpaRepository<Resume, Long> {
 
     List<Resume> findByUser_IdOrderByUpdatedAtDesc(Long userId);
+
+    List<Resume> findAllByIdInAndUser_Email(List<Long> resumeIds, String email);
 }

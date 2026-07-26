@@ -1,5 +1,6 @@
 package com.example.myresumeapi.controller;
 
+import com.example.myresumeapi.dto.ResumeBulkDeleteRequest;
 import com.example.myresumeapi.dto.ResumeResponse;
 import com.example.myresumeapi.dto.ResumeSaveRequest;
 import com.example.myresumeapi.dto.ResumeSummaryResponse;
@@ -11,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -64,5 +66,21 @@ public class ResumeController {
             @PathVariable Long resumeId
     ) {
         return resumeService.getResumeById(resumeId);
+    }
+
+    @DeleteMapping("/bulk")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteResumes(
+            @RequestBody ResumeBulkDeleteRequest request,
+            Principal principal
+    ) {
+        if (request == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Request body is mandatory"
+            );
+        }
+
+        resumeService.deleteResumes(request.getResumeIds(), principal.getName());
     }
 }

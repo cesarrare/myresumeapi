@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,6 +146,39 @@ public class ResumeServiceImpl
         saveFeaturedProjects(resume, request.getFeaturedProjects());
 
         return getResumeById(resume.getId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteResumes(List<Long> resumeIds, String authenticatedEmail) {
+        if (resumeIds == null || resumeIds.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "resumeIds must contain at least one resume ID"
+            );
+        }
+
+        List<Long> uniqueIds = new ArrayList<>(new LinkedHashSet<>(resumeIds));
+        if (uniqueIds.stream().anyMatch(id -> id == null || id <= 0)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "resumeIds must contain only positive IDs"
+            );
+        }
+
+        List<Resume> resumes = resumeRepository.findAllByIdInAndUser_Email(
+                uniqueIds,
+                authenticatedEmail
+        );
+
+        if (resumes.size() != uniqueIds.size()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "One or more resumes were not found"
+            );
+        }
+
+        resumeRepository.deleteAll(resumes);
     }
 
     private void clearResumeChildren(Long resumeId) {

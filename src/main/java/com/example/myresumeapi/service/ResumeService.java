@@ -17,4 +17,6 @@ public interface ResumeService {
 
     ResumeResponse updateResume(ResumeUpdateRequest request);
 
+    void deleteResumes(List<Long> resumeIds, String authenticatedEmail);
+
 }
